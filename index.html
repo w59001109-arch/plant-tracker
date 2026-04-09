@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="植物日誌">
+<meta name="theme-color" content="#f7f5f0">
+<title>植物日誌</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface2: #f0ede6;
+    --border: #e2ddd4;
+    --border2: #c8c2b6;
+    --text: #1a1a16;
+    --text2: #6b6659;
+    --text3: #9e9889;
+    --green: #3b6d11;
+    --green-light: #eaf3de;
+    --green-mid: #639922;
+    --amber: #ba7517;
+    --amber-light: #faeeda;
+    --blue: #185fa5;
+    --blue-light: #e6f1fb;
+    --red: #c0392b;
+    --red-light: #fdecea;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* ── Layout ── */
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── Header ── */
+  .header {
+    padding: 52px 20px 16px;
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-row { display: flex; align-items: flex-end; justify-content: space-between; }
+  .app-title { font-family: 'Noto Serif TC', serif; font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+  .app-subtitle { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+  /* ── Plant bar ── */
+  .plant-scroll-wrap { padding: 12px 20px; overflow-x: auto; scrollbar-width: none; background: var(--bg); }
+  .plant-scroll-wrap::-webkit-scrollbar { display: none; }
+  .plant-bar { display: flex; gap: 8px; width: max-content; }
+  .plant-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 20px;
+    border: 1px solid var(--border2);
+    font-size: 13px; cursor: pointer;
+    background: var(--surface); color: var(--text2);
+    white-space: nowrap; transition: all 0.15s;
+    font-family: 'Noto Sans TC', sans-serif;
+  }
+  .plant-chip.active { background: var(--green); border-color: var(--green); color: #fff; font-weight: 500; }
+  .plant-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .add-chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 20px;
+    border: 1px dashed var(--border2);
+    font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--text3);
+    white-space: nowrap; font-family: 'Noto Sans TC', sans-serif;
+  }
+  .manage-chip {
+    display: flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 20px;
+    border: 1px solid var(--border2);
+    font-size: 13px; cursor: pointer;
+    background: transparent; color: var(--text3);
+    white-space: nowrap; font-family: 'Noto Sans TC', sans-serif;
+  }
+
+  /* ── Manage plants sheet ── */
+  .plant-manage-list { display: flex; flex-direction: column; gap: 8px; }
+  .plant-manage-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
+    background: var(--bg); border: 1px solid var(--border);
+  }
+  .plant-manage-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .plant-manage-name { flex: 1; font-size: 15px; color: var(--text); }
+  .plant-manage-count { font-size: 12px; color: var(--text3); margin-right: 4px; }
+  .plant-manage-del {
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); font-size: 22px; padding: 0 2px;
+    line-height: 1; flex-shrink: 0;
+  }
+  .plant-manage-del:active { color: var(--red); }
+
+  /* ── Content ── */
+  .content { flex: 1; padding: 16px 20px 100px; overflow-y: auto; }
+
+  /* ── Action cards ── */
+  .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
+  .action-card {
+    padding: 16px 12px 14px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s, opacity 0.12s;
+    text-align: left;
+    font-family: inherit;
+  }
+  .action-card:active { transform: scale(0.96); opacity: 0.85; }
+  .action-card.fertilize { background: var(--amber-light); border-color: #e8c07a; }
+  .action-card.disinfect { background: var(--blue-light); border-color: #92c0e8; }
+  .action-card.repot { background: var(--green-light); border-color: #a8d180; }
+  .action-icon { font-size: 26px; margin-bottom: 8px; line-height: 1; }
+  .action-label { font-size: 14px; font-weight: 500; }
+  .action-card.fertilize .action-label { color: #7a4e0a; }
+  .action-card.disinfect .action-label { color: #0d3f6e; }
+  .action-card.repot .action-label { color: #254808; }
+  .action-last { font-size: 11px; margin-top: 4px; color: var(--text3); }
+
+  /* ── Section ── */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .section-title { font-size: 12px; font-weight: 500; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .log-count { font-size: 12px; color: var(--text3); }
+
+  /* ── Log list ── */
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 14px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .log-badge {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .log-badge.f { background: var(--amber-light); }
+  .log-badge.d { background: var(--blue-light); }
+  .log-badge.r { background: var(--green-light); }
+  .log-meta { flex: 1; min-width: 0; }
+  .log-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .log-type { font-size: 14px; font-weight: 500; color: var(--text); }
+  .log-plant-tag {
+    font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    font-weight: 500; flex-shrink: 0;
+  }
+  .log-date { font-size: 12px; color: var(--text3); margin-left: auto; white-space: nowrap; }
+  .log-note { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.4; word-break: break-all; }
+  .log-delete {
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); font-size: 20px; padding: 0 0 0 6px;
+    line-height: 1; flex-shrink: 0; margin-top: -1px;
+  }
+  .log-delete:active { color: var(--red); }
+
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text3); font-size: 14px; line-height: 2;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 8px; }
+
+  /* ── Modal ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .sheet {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 0 0 env(safe-area-inset-bottom, 16px);
+    width: 100%; max-width: 480px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border2); margin: 12px auto 0; }
+  .sheet-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 18px; font-weight: 600;
+    padding: 14px 20px 16px;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  .sheet-body { padding: 20px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; color: var(--text3); font-weight: 500; margin-bottom: 6px; display: block; letter-spacing: 0.03em; }
+  .form-control {
+    width: 100%; padding: 11px 14px;
+    border: 1px solid var(--border2); border-radius: 10px;
+    font-size: 15px; font-family: 'Noto Sans TC', sans-serif;
+    color: var(--text); background: var(--surface);
+    appearance: none; -webkit-appearance: none;
+    outline: none; transition: border-color 0.15s;
+  }
+  .form-control:focus { border-color: var(--green); }
+  textarea.form-control { height: 80px; resize: none; line-height: 1.5; }
+  select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239e9889' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+
+  .sheet-btns { display: flex; gap: 10px; padding: 0 20px 8px; }
+  .btn-cancel {
+    flex: 1; padding: 13px; border-radius: 12px;
+    border: 1px solid var(--border2); background: transparent;
+    font-size: 15px; font-family: 'Noto Sans TC', sans-serif;
+    color: var(--text2); cursor: pointer;
+  }
+  .btn-confirm {
+    flex: 2; padding: 13px; border-radius: 12px;
+    border: none; background: var(--green);
+    font-size: 15px; font-family: 'Noto Sans TC', sans-serif;
+    color: #fff; font-weight: 500; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-confirm:active { opacity: 0.8; }
+
+  /* ── Color swatches ── */
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; }
+  .swatch {
+    width: 32px; height: 32px; border-radius: 50%;
+    cursor: pointer; border: 3px solid transparent;
+    transition: border-color 0.15s, transform 0.12s;
+  }
+  .swatch.selected { border-color: var(--text); transform: scale(1.15); }
+
+  /* ── Filter chips for log ── */
+  .filter-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 5px 12px; border-radius: 16px; font-size: 12px;
+    border: 1px solid var(--border2); cursor: pointer;
+    background: var(--surface); color: var(--text2);
+    font-family: 'Noto Sans TC', sans-serif; transition: all 0.15s;
+  }
+  .filter-chip.active { background: var(--text); border-color: var(--text); color: #fff; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--text); color: #fff;
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; z-index: 500;
+    opacity: 0; transition: opacity 0.2s;
+    pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <div class="app-title">🌱 植物日誌</div>
+        <div class="app-subtitle" id="header-sub">記錄施肥・消毒・換盆</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plant-scroll-wrap">
+    <div class="plant-bar" id="plant-bar"></div>
+  </div>
+
+  <div class="content">
+    <div class="action-grid">
+      <button class="action-card fertilize" onclick="openLog('fertilize')">
+        <div class="action-icon">🌿</div>
+        <div class="action-label">施肥</div>
+        <div class="action-last" id="last-fertilize">尚無記錄</div>
+      </button>
+      <button class="action-card disinfect" onclick="openLog('disinfect')">
+        <div class="action-icon">💧</div>
+        <div class="action-label">消毒</div>
+        <div class="action-last" id="last-disinfect">尚無記錄</div>
+      </button>
+      <button class="action-card repot" onclick="openLog('repot')">
+        <div class="action-icon">🪴</div>
+        <div class="action-label">換盆</div>
+        <div class="action-last" id="last-repot">尚無記錄</div>
+      </button>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">記錄列表</div>
+      <div class="log-count" id="log-count"></div>
+    </div>
+    <div class="filter-row" id="filter-row"></div>
+    <div class="log-list" id="log-list"></div>
+  </div>
+</div>
+
+<!-- 記錄 Sheet -->
+<div class="overlay" id="modal-log" style="display:none" onclick="closeSheet(event,'modal-log')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="modal-log-title">新增記錄</div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label class="form-label">植物</label>
+        <select class="form-control" id="log-plant-sel"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">日期</label>
+        <input type="date" class="form-control" id="log-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">備註（選填）</label>
+        <textarea class="form-control" id="log-note" placeholder="例如：液態肥料稀釋100倍、使用XX藥劑..."></textarea>
+      </div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="hideSheet('modal-log')">取消</button>
+      <button class="btn-confirm" onclick="saveLog()">儲存記錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增植物 Sheet -->
+<div class="overlay" id="modal-plant" style="display:none" onclick="closeSheet(event,'modal-plant')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">新增植物</div>
+    <div class="sheet-body">
+      <div class="form-group">
+        <label class="form-label">植物名稱</label>
+        <input type="text" class="form-control" id="plant-name-input" placeholder="例如：薰衣草、黃金葛、玫瑰...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">顏色標籤</label>
+        <div class="swatches" id="swatches"></div>
+      </div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="hideSheet('modal-plant')">取消</button>
+      <button class="btn-confirm" onclick="savePlant()">新增植物</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理植物 Sheet -->
+<div class="overlay" id="modal-manage" style="display:none" onclick="closeSheet(event,'modal-manage')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">管理植物</div>
+    <div class="sheet-body">
+      <div class="plant-manage-list" id="plant-manage-list"></div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" onclick="hideSheet('modal-manage')">關閉</button>
+      <button class="btn-confirm" onclick="hideSheet('modal-manage'); openPlantModal()">+ 新增植物</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS = ['#3b6d11','#185fa5','#ba7517','#993556','#3c3489','#0f6e56','#993c1d','#c0392b','#5f5e5a','#7b4f2e'];
+const COLOR_BG = { '#3b6d11':'#eaf3de','#185fa5':'#e6f1fb','#ba7517':'#faeeda','#993556':'#fbeaf0','#3c3489':'#eeedfe','#0f6e56':'#e1f5ee','#993c1d':'#faece7','#c0392b':'#fdecea','#5f5e5a':'#f1efe8','#7b4f2e':'#f5ede6' };
+const LABELS = { fertilize:'施肥', disinfect:'消毒', repot:'換盆' };
+const ICONS  = { fertilize:'🌿', disinfect:'💧', repot:'🪴' };
+const BC     = { fertilize:'f', disinfect:'d', repot:'r' };
+
+let plants = [], logs = [], selectedPlant = 'all', filterType = 'all', currentLogType = '', selectedColor = COLORS[0], nextId = 1;
+let db = null;
+
+/* ── IndexedDB setup ── */
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('PlantJournal', 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('plants')) d.createObjectStore('plants', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('logs'))   d.createObjectStore('logs',   { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('meta'))   d.createObjectStore('meta',   { keyPath: 'key' });
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbPut(store, obj) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(obj);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbDelete(store, id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbClear(store) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).clear();
+    req.onsuccess = () => resolve();
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+async function loadData() {
+  try {
+    db = await openDB();
+    plants = await dbGetAll('plants');
+    logs   = await dbGetAll('logs');
+    const metaArr = await dbGetAll('meta');
+    const metaNextId = metaArr.find(m => m.key === 'nextId');
+    nextId = metaNextId ? metaNextId.value : 1;
+    if (!plants.length) {
+      plants = [{ id:1, name:'黃金葛', color:'#3b6d11' }, { id:2, name:'多肉植物', color:'#ba7517' }];
+      nextId = 3;
+      await saveData();
+    }
+  } catch(e) {
+    console.error('DB error:', e);
+    plants = [{ id:1, name:'黃金葛', color:'#3b6d11' }, { id:2, name:'多肉植物', color:'#ba7517' }];
+    logs = []; nextId = 3;
+  }
+}
+
+async function saveData() {
+  if (!db) return;
+  try {
+    await dbClear('plants');
+    for (const p of plants) await dbPut('plants', p);
+    await dbClear('logs');
+    for (const l of logs) await dbPut('logs', l);
+    await dbPut('meta', { key: 'nextId', value: nextId });
+  } catch(e) { console.error('Save error:', e); }
+}
+
+function getPlant(id) { return plants.find(p => p.id === id) || { name:'未知', color:'#888' }; }
+
+function today() { return new Date().toISOString().slice(0,10); }
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  const now = new Date(); const dd = new Date(d);
+  const diff = Math.round((now - dd) / 86400000);
+  if (diff === 0) return '今天';
+  if (diff === 1) return '昨天';
+  if (diff < 7)  return diff + '天前';
+  return m + '/' + day;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ── Render ── */
+function render() {
+  renderPlantBar();
+  renderCards();
+  renderFilters();
+  renderLogs();
+  const sub = document.getElementById('header-sub');
+  sub.textContent = plants.length + ' 盆植物・' + logs.length + ' 筆記錄';
+}
+
+function renderPlantBar() {
+  const bar = document.getElementById('plant-bar');
+  bar.innerHTML = '';
+  const all = el('button', 'plant-chip' + (selectedPlant==='all'?' active':''), '全部');
+  all.onclick = () => { selectedPlant='all'; render(); };
+  bar.appendChild(all);
+  plants.forEach(p => {
+    const chip = document.createElement('button');
+    chip.className = 'plant-chip' + (selectedPlant===p.id?' active':'');
+    chip.innerHTML = `<span class="dot" style="background:${p.color}"></span>${p.name}`;
+    chip.onclick = () => { selectedPlant=p.id; render(); };
+    bar.appendChild(chip);
+  });
+  const add = el('button','add-chip','+ 新增植物');
+  add.onclick = openPlantModal;
+  bar.appendChild(add);
+  const manage = el('button','manage-chip','管理');
+  manage.onclick = openManageModal;
+  bar.appendChild(manage);
+}
+
+function renderCards() {
+  ['fertilize','disinfect','repot'].forEach(type => {
+    const filtered = logs.filter(l => l.type===type && (selectedPlant==='all' || l.plantId===selectedPlant));
+    const el2 = document.getElementById('last-'+type);
+    if (!filtered.length) { el2.textContent = '尚無記錄'; return; }
+    const last = filtered.sort((a,b)=>b.date.localeCompare(a.date))[0];
+    el2.textContent = fmtDate(last.date) + ' · ' + getPlant(last.plantId).name;
+  });
+}
+
+function renderFilters() {
+  const row = document.getElementById('filter-row');
+  const types = [['all','全部'],['fertilize','施肥'],['disinfect','消毒'],['repot','換盆']];
+  row.innerHTML = types.map(([v,l]) =>
+    `<button class="filter-chip${filterType===v?' active':''}" onclick="setFilter('${v}')">${l}</button>`
+  ).join('');
+}
+
+function setFilter(t) { filterType=t; render(); }
+
+function renderLogs() {
+  const list = document.getElementById('log-list');
+  let items = [...logs];
+  if (selectedPlant!=='all') items = items.filter(l=>l.plantId===selectedPlant);
+  if (filterType!=='all')    items = items.filter(l=>l.type===filterType);
+  items.sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('log-count').textContent = items.length + ' 筆';
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🌿</div>還沒有記錄<br>點擊上方按鈕開始紀錄吧！</div>`;
+    return;
+  }
+  list.innerHTML = items.map(l => {
+    const p = getPlant(l.plantId);
+    const bg = COLOR_BG[p.color] || '#f1efe8';
+    return `<div class="log-item">
+      <div class="log-badge ${BC[l.type]}">${ICONS[l.type]}</div>
+      <div class="log-meta">
+        <div class="log-top">
+          <span class="log-type">${LABELS[l.type]}</span>
+          <span class="log-plant-tag" style="background:${bg};color:${p.color}">${p.name}</span>
+          <span class="log-date">${l.date}</span>
+        </div>
+        ${l.note ? `<div class="log-note">${escHtml(l.note)}</div>` : ''}
+      </div>
+      <button class="log-delete" onclick="deleteLog(${l.id})">×</button>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function el(tag,cls,txt) {
+  const e=document.createElement(tag); e.className=cls; e.textContent=txt; return e;
+}
+
+/* ── Log modal ── */
+function openLog(type) {
+  currentLogType = type;
+  document.getElementById('modal-log-title').textContent = '記錄' + LABELS[type];
+  const sel = document.getElementById('log-plant-sel');
+  sel.innerHTML = plants.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  if (selectedPlant!=='all') sel.value = selectedPlant;
+  document.getElementById('log-date').value = today();
+  document.getElementById('log-note').value = '';
+  document.getElementById('modal-log').style.display = 'flex';
+}
+
+function saveLog() {
+  const plantId = parseInt(document.getElementById('log-plant-sel').value);
+  const date    = document.getElementById('log-date').value;
+  const note    = document.getElementById('log-note').value.trim();
+  if (!date) { showToast('請選擇日期'); return; }
+  logs.push({ id:nextId++, type:currentLogType, plantId, date, note });
+  saveData(); hideSheet('modal-log'); render();
+  showToast('已記錄' + LABELS[currentLogType] + ' ✓');
+}
+
+function deleteLog(id) {
+  if (!confirm('確定要刪除這筆記錄嗎？')) return;
+  logs = logs.filter(l=>l.id!==id);
+  saveData(); render(); showToast('已刪除');
+}
+
+/* ── Plant modal ── */
+function openPlantModal() {
+  document.getElementById('plant-name-input').value = '';
+  selectedColor = COLORS[0];
+  renderSwatches();
+  document.getElementById('modal-plant').style.display = 'flex';
+  setTimeout(()=>document.getElementById('plant-name-input').focus(), 300);
+}
+
+function renderSwatches() {
+  document.getElementById('swatches').innerHTML = COLORS.map(c=>
+    `<div class="swatch${c===selectedColor?' selected':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`
+  ).join('');
+}
+
+function pickColor(c) { selectedColor=c; renderSwatches(); }
+
+function savePlant() {
+  const name = document.getElementById('plant-name-input').value.trim();
+  if (!name) { showToast('請輸入植物名稱'); return; }
+  plants.push({ id:nextId++, name, color:selectedColor });
+  saveData(); hideSheet('modal-plant'); render();
+  showToast('已新增「' + name + '」');
+}
+
+/* ── Manage plants modal ── */
+function openManageModal() {
+  const list = document.getElementById('plant-manage-list');
+  if (!plants.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px 0">還沒有植物</div>';
+  } else {
+    list.innerHTML = plants.map(p => {
+      const count = logs.filter(l=>l.plantId===p.id).length;
+      return `<div class="plant-manage-item">
+        <span class="plant-manage-dot" style="background:${p.color}"></span>
+        <span class="plant-manage-name">${escHtml(p.name)}</span>
+        <span class="plant-manage-count">${count} 筆記錄</span>
+        <button class="plant-manage-del" onclick="deletePlant(${p.id})" title="刪除">×</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('modal-manage').style.display = 'flex';
+}
+
+function deletePlant(id) {
+  const p = getPlant(id);
+  const count = logs.filter(l=>l.plantId===id).length;
+  const msg = count > 0
+    ? `確定要刪除「${p.name}」嗎？\n相關的 ${count} 筆記錄也會一併刪除。`
+    : `確定要刪除「${p.name}」嗎？`;
+  if (!confirm(msg)) return;
+  plants = plants.filter(pl=>pl.id!==id);
+  logs   = logs.filter(l=>l.plantId!==id);
+  if (selectedPlant===id) selectedPlant='all';
+  saveData();
+  openManageModal();
+  render();
+  showToast('已刪除「' + p.name + '」');
+}
+
+/* ── Sheet helpers ── */
+function hideSheet(id) { document.getElementById(id).style.display='none'; }
+function closeSheet(e,id) { if (e.target===document.getElementById(id)) hideSheet(id); }
+
+loadData().then(() => render());
+</script>
+</body>
+</html>
