@@ -57,37 +57,41 @@
   .app-title { font-family: 'Noto Serif TC', serif; font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
   .app-subtitle { font-size: 12px; color: var(--text3); margin-top: 2px; }
 
-  /* ── Plant bar ── */
-  .plant-scroll-wrap { padding: 12px 20px; overflow-x: auto; scrollbar-width: none; background: var(--bg); }
-  .plant-scroll-wrap::-webkit-scrollbar { display: none; }
-  .plant-bar { display: flex; gap: 8px; width: max-content; }
-  .plant-chip {
-    display: flex; align-items: center; gap: 6px;
-    padding: 7px 14px; border-radius: 20px;
-    border: 1px solid var(--border2);
-    font-size: 13px; cursor: pointer;
-    background: var(--surface); color: var(--text2);
-    white-space: nowrap; transition: all 0.15s;
+  /* ── Plant card grid ── */
+  .plant-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px 20px 0; }
+  .plant-card {
+    border-radius: 16px; border: 2.5px solid var(--border);
+    background: var(--surface); cursor: pointer;
+    transition: transform 0.12s, border-color 0.15s;
+    overflow: hidden; text-align: center;
+  }
+  .plant-card:active { transform: scale(0.97); }
+  .plant-card.active { border-color: var(--green); background: var(--green-light); }
+  .plant-card-photo { width: 100%; height: 110px; object-fit: cover; display: block; }
+  .plant-card-photo-placeholder {
+    width: 100%; height: 110px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+  }
+  .plant-card-name { font-size: 16px; font-weight: 500; padding: 10px 8px; color: var(--text); }
+  .plant-card.active .plant-card-name { color: var(--green); }
+  .plant-card-all { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 150px; gap: 8px; }
+  .plant-card-all-icon { font-size: 36px; }
+  .plant-card-add {
+    border-radius: 16px; border: 2.5px dashed var(--border2);
+    background: transparent; cursor: pointer; min-height: 150px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; transition: border-color 0.15s;
+  }
+  .plant-card-add:active { border-color: var(--green); }
+  .plant-card-add-icon { font-size: 36px; color: var(--text3); }
+  .plant-card-add-label { font-size: 15px; color: var(--text3); font-family: 'Noto Sans TC', sans-serif; }
+
+  /* ── Manage btn ── */
+  .manage-bar { padding: 10px 20px 0; display: flex; justify-content: flex-end; }
+  .manage-btn {
+    padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border2);
+    font-size: 14px; cursor: pointer; background: transparent; color: var(--text3);
     font-family: 'Noto Sans TC', sans-serif;
-  }
-  .plant-chip.active { background: var(--green); border-color: var(--green); color: #fff; font-weight: 500; }
-  .plant-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .plant-chip .thumb { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-  .add-chip {
-    display: flex; align-items: center; gap: 5px;
-    padding: 7px 14px; border-radius: 20px;
-    border: 1px dashed var(--border2);
-    font-size: 13px; cursor: pointer;
-    background: transparent; color: var(--text3);
-    white-space: nowrap; font-family: 'Noto Sans TC', sans-serif;
-  }
-  .manage-chip {
-    display: flex; align-items: center; gap: 5px;
-    padding: 7px 14px; border-radius: 20px;
-    border: 1px solid var(--border2);
-    font-size: 13px; cursor: pointer;
-    background: transparent; color: var(--text3);
-    white-space: nowrap; font-family: 'Noto Sans TC', sans-serif;
   }
 
   /* ── Manage plants sheet ── */
@@ -128,24 +132,24 @@
   /* ── Action cards ── */
   .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
   .action-card {
-    padding: 16px 12px 14px;
-    border-radius: 14px;
+    padding: 20px 8px 16px;
+    border-radius: 16px;
     border: 1px solid transparent;
     cursor: pointer;
     transition: transform 0.12s, opacity 0.12s;
-    text-align: left;
+    text-align: center;
     font-family: inherit;
   }
   .action-card:active { transform: scale(0.96); opacity: 0.85; }
   .action-card.fertilize { background: var(--amber-light); border-color: #e8c07a; }
   .action-card.disinfect { background: var(--blue-light); border-color: #92c0e8; }
   .action-card.repot { background: var(--green-light); border-color: #a8d180; }
-  .action-icon { font-size: 26px; margin-bottom: 8px; line-height: 1; }
-  .action-label { font-size: 14px; font-weight: 500; }
+  .action-icon { font-size: 34px; margin-bottom: 8px; line-height: 1; }
+  .action-label { font-size: 16px; font-weight: 500; }
   .action-card.fertilize .action-label { color: #7a4e0a; }
   .action-card.disinfect .action-label { color: #0d3f6e; }
   .action-card.repot .action-label { color: #254808; }
-  .action-last { font-size: 11px; margin-top: 4px; color: var(--text3); }
+  .action-last { font-size: 11px; margin-top: 5px; color: var(--text3); }
 
   /* ── Section ── */
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -292,9 +296,10 @@
     </div>
   </div>
 
-  <div class="plant-scroll-wrap">
-    <div class="plant-bar" id="plant-bar"></div>
+  <div class="manage-bar">
+    <button class="manage-btn" onclick="openManageModal()">管理植物</button>
   </div>
+  <div class="plant-grid" id="plant-grid"></div>
 
   <div class="content">
     <div class="action-grid">
@@ -512,7 +517,7 @@ function showToast(msg) {
 
 /* ── Render ── */
 function render() {
-  renderPlantBar();
+  renderPlantGrid();
   renderCards();
   renderFilters();
   renderLogs();
@@ -522,29 +527,34 @@ function render() {
 
 let selectedPhotoData = null;
 
-function renderPlantBar() {
-  const bar = document.getElementById('plant-bar');
-  bar.innerHTML = '';
-  const all = el('button', 'plant-chip' + (selectedPlant==='all'?' active':''), '全部');
-  all.onclick = () => { selectedPlant='all'; render(); };
-  bar.appendChild(all);
+function renderPlantGrid() {
+  const grid = document.getElementById('plant-grid');
+  grid.innerHTML = '';
+
+  // 全部卡片
+  const allCard = document.createElement('div');
+  allCard.className = 'plant-card' + (selectedPlant==='all' ? ' active' : '');
+  allCard.innerHTML = `<div class="plant-card-all"><div class="plant-card-all-icon">🌿</div><div class="plant-card-name">全部</div></div>`;
+  allCard.onclick = () => { selectedPlant='all'; render(); };
+  grid.appendChild(allCard);
+
   plants.forEach(p => {
-    const chip = document.createElement('button');
-    chip.className = 'plant-chip' + (selectedPlant===p.id?' active':'');
-    if (p.photo) {
-      chip.innerHTML = `<img class="thumb" src="${p.photo}">${escHtml(p.name)}`;
-    } else {
-      chip.innerHTML = `<span class="dot" style="background:${p.color}"></span>${escHtml(p.name)}`;
-    }
-    chip.onclick = () => { selectedPlant=p.id; render(); };
-    bar.appendChild(chip);
+    const card = document.createElement('div');
+    card.className = 'plant-card' + (selectedPlant===p.id ? ' active' : '');
+    const photoHtml = p.photo
+      ? `<img class="plant-card-photo" src="${p.photo}">`
+      : `<div class="plant-card-photo-placeholder">🪴</div>`;
+    card.innerHTML = `${photoHtml}<div class="plant-card-name">${escHtml(p.name)}</div>`;
+    card.onclick = () => { selectedPlant=p.id; render(); };
+    grid.appendChild(card);
   });
-  const add = el('button','add-chip','+ 新增植物');
-  add.onclick = openPlantModal;
-  bar.appendChild(add);
-  const manage = el('button','manage-chip','管理');
-  manage.onclick = openManageModal;
-  bar.appendChild(manage);
+
+  // 新增卡片
+  const addCard = document.createElement('div');
+  addCard.className = 'plant-card-add';
+  addCard.innerHTML = `<div class="plant-card-add-icon">＋</div><div class="plant-card-add-label">新增植物</div>`;
+  addCard.onclick = openPlantModal;
+  grid.appendChild(addCard);
 }
 
 function renderCards() {
