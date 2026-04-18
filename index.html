@@ -282,8 +282,8 @@
     display: flex; flex-direction: column;
     animation: slideUp 0.25s ease;
   }
-  .profile-photo { width: 100%; height: 200px; object-fit: cover; border-radius: 20px 20px 0 0; }
-  .profile-photo-placeholder { width: 100%; height: 160px; background: var(--surface2); border-radius: 20px 20px 0 0; display: flex; align-items: center; justify-content: center; font-size: 60px; }
+  .profile-photo { width: 100%; height: 260px; object-fit: cover; border-radius: 20px 20px 0 0; }
+  .profile-photo-placeholder { width: 100%; height: 200px; background: var(--surface2); border-radius: 20px 20px 0 0; display: flex; align-items: center; justify-content: center; font-size: 80px; }
   .profile-header { padding: 16px 20px 0; display: flex; align-items: center; justify-content: space-between; }
   .profile-name { font-family: 'Noto Serif TC', serif; font-size: 22px; font-weight: 600; color: var(--text); }
   .profile-close { background: none; border: none; font-size: 24px; color: var(--text3); cursor: pointer; padding: 4px; }
@@ -426,9 +426,9 @@
         <label class="form-label">照片（選填）</label>
         <div class="photo-upload-area" id="photo-upload-area" onclick="document.getElementById('plant-photo-input').click()">
           <div class="photo-upload-icon">📷</div>
-          <div class="photo-upload-hint">拍照或從相簿選取</div>
+          <div class="photo-upload-hint">點擊拍照或選取相簿</div>
         </div>
-        <input type="file" id="plant-photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoSelect(this)">
+        <input type="file" id="plant-photo-input" accept="image/*" style="display:none" onchange="handlePhotoSelect(this)">
       </div>
       <div class="form-group">
         <label class="form-label">顏色標籤</label>
@@ -781,8 +781,8 @@ function openProfile(plantId) {
   // 照片
   const photoArea = document.getElementById('profile-photo-area');
   photoArea.innerHTML = p.photo
-    ? `<img class="profile-photo" src="${p.photo}">`
-    : `<div class="profile-photo-placeholder">🪴</div>`;
+    ? `<img class="profile-photo" src="${p.photo}" onclick="editPlantPhoto(${plantId})" title="點擊換照片" style="cursor:pointer;">`
+    : `<div class="profile-photo-placeholder" onclick="editPlantPhoto(${plantId})" style="cursor:pointer;">🪴<br><span style="font-size:14px;color:var(--text3);margin-top:8px;display:block">點擊新增照片</span></div>`;
 
   // 名稱
   document.getElementById('profile-name').textContent = p.name;
@@ -980,7 +980,7 @@ let editingPlantId = null;
 function editPlantPhoto(id) {
   editingPlantId = id;
   const input = document.createElement('input');
-  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+  input.type = 'file'; input.accept = 'image/*';
   input.onchange = e => {
     const file = e.target.files[0]; if (!file) return;
     const reader = new FileReader();
@@ -994,7 +994,7 @@ function editPlantPhoto(id) {
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const pl = plants.find(p=>p.id===editingPlantId);
-        if (pl) { pl.photo = canvas.toDataURL('image/jpeg', 0.7); saveData(); openManageModal(); render(); showToast('照片已更新'); }
+        if (pl) { pl.photo = canvas.toDataURL('image/jpeg', 0.7); saveData(); openManageModal(); render(); openProfile(editingPlantId); showToast('照片已更新'); }
       };
       img.src = ev.target.result;
     };
