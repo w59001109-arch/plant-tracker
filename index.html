@@ -125,6 +125,10 @@
     line-height: 1; flex-shrink: 0;
   }
   .plant-manage-del:active { color: var(--red); }
+  .plant-manage-edit {
+    background: none; border: none; cursor: pointer;
+    font-size: 16px; padding: 0 4px; flex-shrink: 0;
+  }
 
   /* ── Content ── */
   .content { flex: 1; padding: 16px 20px 100px; overflow-y: auto; }
@@ -968,13 +972,25 @@ function openManageModal() {
         : `<div class="plant-manage-photo-placeholder" onclick="editPlantPhoto(${p.id})">📷</div>`;
       return `<div class="plant-manage-item">
         ${photoEl}
-        <span class="plant-manage-name">${escHtml(p.name)}</span>
-        <span class="plant-manage-count">${count} 筆</span>
+        <div style="flex:1;min-width:0;">
+          <div class="plant-manage-name">${escHtml(p.name)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${count} 筆記錄</div>
+        </div>
+        <button class="plant-manage-edit" onclick="editPlantName(${p.id})" title="改名">✏️</button>
         <button class="plant-manage-del" onclick="deletePlant(${p.id})" title="刪除">×</button>
       </div>`;
     }).join('');
   }
   document.getElementById('modal-manage').style.display = 'flex';
+}
+
+function editPlantName(id) {
+  const p = getPlant(id);
+  const newName = prompt('修改植物名稱', p.name);
+  if (!newName || !newName.trim()) return;
+  p.name = newName.trim();
+  saveData(); openManageModal(); render();
+  showToast('名稱已更新');
 }
 
 let editingPlantId = null;
