@@ -87,7 +87,8 @@
   .plant-card-add-label { font-size: 15px; color: var(--text3); font-family: 'Noto Sans TC', sans-serif; }
 
   /* ── Manage btn ── */
-  .manage-bar { padding: 10px 20px 0; display: flex; justify-content: flex-end; }
+  .manage-bar { padding: 10px 20px 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .manage-bar-left { display: flex; gap: 8px; }
   .manage-btn {
     padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border2);
     font-size: 14px; cursor: pointer; background: transparent; color: var(--text3);
@@ -348,13 +349,18 @@
   <div class="header">
     <div class="header-row">
       <div>
-        <div class="app-title">🌱 植物日誌</div>
+        <div class="app-title">🌱 植物日誌 <span style="font-size:13px;font-weight:400;color:var(--text3);font-family:'Noto Sans TC',sans-serif;letter-spacing:0">v1.1</span></div>
         <div class="app-subtitle" id="header-sub">記錄施肥・消毒・換盆</div>
       </div>
     </div>
   </div>
 
   <div class="manage-bar">
+    <div class="manage-bar-left">
+      <button class="manage-btn" onclick="exportData()">匯出備份</button>
+      <button class="manage-btn" onclick="document.getElementById('import-input').click()">匯入還原</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)">
+    </div>
     <button class="manage-btn" onclick="openManageModal()">管理植物</button>
   </div>
   <div class="plant-grid" id="plant-grid"></div>
@@ -509,6 +515,20 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; window.location.reload(); }
+  });
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update();
+    });
+  });
+}
+</script>
 
 <script>
 const COLORS = ['#3b6d11','#185fa5','#ba7517','#993556','#3c3489','#0f6e56','#993c1d','#c0392b','#5f5e5a','#7b4f2e'];
@@ -1039,6 +1059,55 @@ function deletePlant(id) {
 /* ── Sheet helpers ── */
 function hideSheet(id) { document.getElementById(id).style.display='none'; }
 function closeSheet(e,id) { if (e.target===document.getElementById(id)) hideSheet(id); }
+
+/* ── Export / Import ── */
+function exportData() {
+  const data = { version: 1, exportDate: new Date().toISOString(), plants, logs, purchases, nextId };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'plant-journal-' + today() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('備份已匯出 ✓');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data.plants) || !Array.isArray(data.logs)) {
+        showToast('檔案格式錯誤，無法匯入');
+        input.value = '';
+        return;
+      }
+      const pCount = data.plants.length;
+      const lCount = data.logs.length;
+      const rCount = (data.purchases || []).length;
+      if (!confirm(`確定要匯入備份嗎？\n${pCount} 盆植物・${lCount} 筆記錄・${rCount} 筆購買\n\n⚠️ 這將覆蓋目前所有資料。`)) {
+        input.value = '';
+        return;
+      }
+      plants    = data.plants;
+      logs      = data.logs;
+      purchases = data.purchases || [];
+      nextId    = data.nextId || (Math.max(0, ...[...plants, ...logs, ...purchases].map(o => o.id)) + 1);
+      selectedPlant = 'all';
+      filterType    = 'all';
+      await saveData();
+      render();
+      showToast('資料已匯入 ✓');
+    } catch(err) {
+      showToast('匯入失敗：請確認檔案格式');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
 
 loadData().then(() => render());
 </script>
