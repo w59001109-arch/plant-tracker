@@ -1,4 +1,6 @@
 {
+  "id": "/plant-tracker/",
+  "scope": "/plant-tracker/",
   "name": "植物日誌",
   "short_name": "植物日誌",
   "description": "記錄植物施肥、消毒、換盆的日誌工具",
