@@ -517,6 +517,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
+if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) { refreshing = true; window.location.reload(); }
+  });
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update();
+    });
+  });
+}
+</script>
+
+<script>
 const COLORS = ['#3b6d11','#185fa5','#ba7517','#993556','#3c3489','#0f6e56','#993c1d','#c0392b','#5f5e5a','#7b4f2e'];
 const COLOR_BG = { '#3b6d11':'#eaf3de','#185fa5':'#e6f1fb','#ba7517':'#faeeda','#993556':'#fbeaf0','#3c3489':'#eeedfe','#0f6e56':'#e1f5ee','#993c1d':'#faece7','#c0392b':'#fdecea','#5f5e5a':'#f1efe8','#7b4f2e':'#f5ede6' };
 const LABELS = { fertilize:'施肥', disinfect:'消毒', repot:'換盆' };
